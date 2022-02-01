@@ -11,8 +11,8 @@ from hand_shape_pose.config.paths_catalog import DatasetCatalog
 from . import dataset as D
 
 
-def build_dataset(dataset_name):
-    data = DatasetCatalog.get(dataset_name)
+def build_dataset(dataset_name, **kwargs):
+    data = DatasetCatalog.get(dataset_name, **kwargs)
     args = data["args"]
 
     # make dataset from factory

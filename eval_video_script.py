@@ -21,8 +21,7 @@ from hand_shape_pose.util.miscellaneous import mkdir
 from hand_shape_pose.util.vis import save_batch_image_with_mesh_joints
 from hand_shape_pose.util import renderer
 
-
-def main():
+def parse_arguments():
     parser = argparse.ArgumentParser(description="3D Hand Shape and Pose Inference")
     parser.add_argument(
         "--config-file",
@@ -55,6 +54,12 @@ def main():
     logger = setup_logger("hand_shape_pose_inference", output_dir, filename='eval-' + get_logger_filename())
     logger.info(cfg)
 
+    return output_dir, logger
+
+def main():
+    # 0. Config set up
+    output_dir, logger = parse_arguments()
+
     # 1. Load network model
     model = ShapePoseNetwork(cfg, output_dir)
     device = cfg.MODEL.DEVICE
@@ -63,12 +68,15 @@ def main():
 
     mesh_renderer = renderer.MeshRenderer(model.hand_tri.astype('uint32'))
 
+    # Process videos one by one
+    vid_name = r"/home/saboa/data/EDS/SampleVideos/IMG_1692.MOV"
+
     # 2. Load data
-    dataset_val = build_dataset(cfg.EVAL.DATASET)
+    dataset_val = build_dataset(cfg.EVAL.DATASET, vid_name=vid_name)
     data_loader_val = torch.utils.data.DataLoader(
         dataset_val,
         batch_size=cfg.MODEL.BATCH_SIZE,
-        num_workers=cfg.MODEL.NUM_WORKERS
+        num_workers=0
     )
 
     # 3. Inference

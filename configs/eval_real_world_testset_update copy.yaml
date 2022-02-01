@@ -1,6 +1,6 @@
 MODEL:
   DEVICE: "cuda:0"
-  NUM_WORKERS: 1
+  NUM_WORKERS: 4
   BATCH_SIZE: 8
   NUM_JOINTS: 21
   PRETRAIN_WEIGHT:
@@ -10,8 +10,8 @@ MODEL:
 GRAPH:
   TEMPLATE_PATH: "./data/0214_lowP_vn_g.0001.obj"
 EVAL:
-  SAVE_DIR: "./real_world_videos_v2"
+  SAVE_DIR: "./output_dev"
   SAVE_BATCH_IMAGES_PRED: True
   PRINT_FREQ: 5
   SAVE_POSE_ESTIMATION: True
-  DATASET: "real_world_videos"
+  DATASET: "dev_testset"

@@ -17,6 +17,11 @@ class DatasetCatalog(object):
             "param_file": "real_world_testset/params.mat",
             "ann_file": "real_world_testset/pose_gt.mat",
         },
+        "real_world_videos": {
+            "root_dir": "real_world_videos",
+            "param_file": "real_world_videos/params.mat",
+            "ann_file": "real_world_videos/pose_gt.mat",
+        },
         "STB_eval": {
             "root_dir": "STB",
             "image_list": ["B1Counting", "B1Random"],
@@ -27,8 +32,8 @@ class DatasetCatalog(object):
     }
 
     @staticmethod
-    def get(name):
-        if name == "real_world_testset":
+    def get(name, **kwargs):
+        if name == "real_world_testset" :
             data_dir = DatasetCatalog.DATA_DIR
             attrs = DatasetCatalog.DATASETS[name]
             args = dict(
@@ -54,5 +59,18 @@ class DatasetCatalog(object):
             )
             return dict(
                 factory="STBDataset",
+                args=args,
+            )
+        elif name == "real_world_videos":
+            data_dir = DatasetCatalog.DATA_DIR
+            attrs = DatasetCatalog.DATASETS[name]
+            args = dict(
+                vid_name = kwargs['vid_name'],
+                root=os.path.join(data_dir, attrs["root_dir"]),
+                param_file=os.path.join(data_dir, attrs["param_file"]),
+                ann_file=os.path.join(data_dir, attrs["ann_file"]),
+            )
+            return dict(
+                factory="RealWorldTestSetVideo",
                 args=args,
             )
