@@ -149,6 +149,36 @@ def draw_3d_skeleton(pose_cam_xyz, image_size):
     return ret
 
 
+def rescale_pose(pose_uv, input_dims, output_dims):
+    for joint in pose_uv:
+        joint[0] = joint[0] / input_dims[0] * output_dims[0]
+        joint[1] = joint[1] / input_dims[1] * output_dims[1]
+    return pose_uv
+
+
+def save_output_video(results_pose_cam_xyz, file_name, input_video):
+    # Get video props from the input to ensure they match
+    cap = cv2.VideoCapture(input_video)
+    width  = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))   # float `width`
+    height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))  # float `height`
+    fps = cap.get(cv2.CAP_PROP_FPS)
+
+    fourcc = cv2.VideoWriter_fourcc(*'XVID')
+    out = cv2.VideoWriter(file_name,fourcc, fps, (width,height))
+
+    frames = sorted(list(results_pose_cam_xyz.keys()))
+    for frame in frames: 
+        cap.set(cv2.CAP_PROP_POS_FRAMES, frame)
+        _, image = cap.read()
+        # image = results_pose_cam_xyz[frame]['im']
+        pose_uv = results_pose_cam_xyz[frame]['pose']
+        rescaled_pose = rescale_pose(pose_uv, (256, 256), (width,height))
+        skeleton_overlay = draw_2d_skeleton(image, rescaled_pose)
+        out.write(skeleton_overlay)
+    
+    out.release()
+
+
 def save_batch_image_with_mesh_joints(mesh_renderer, batch_images, cam_params, bboxes,
                                       est_mesh_cam_xyz, est_pose_uv, est_pose_cam_xyz,
                                       file_name, padding=2):

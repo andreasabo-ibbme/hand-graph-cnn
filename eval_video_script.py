@@ -18,7 +18,7 @@ from hand_shape_pose.data.build import build_dataset
 
 from hand_shape_pose.util.logger import setup_logger, get_logger_filename
 from hand_shape_pose.util.miscellaneous import mkdir
-from hand_shape_pose.util.vis import save_batch_image_with_mesh_joints
+from hand_shape_pose.util.vis import save_batch_image_with_mesh_joints, save_output_video
 from hand_shape_pose.util import renderer
 
 def parse_arguments():
@@ -48,7 +48,6 @@ def parse_arguments():
     cfg.merge_from_file(args.config_file)
     cfg.merge_from_list(args.opts)
     cfg.freeze()
-
     output_dir = osp.join(cfg.EVAL.SAVE_DIR, args.config_file)
     mkdir(output_dir)
     logger = setup_logger("hand_shape_pose_inference", output_dir, filename='eval-' + get_logger_filename())
@@ -70,7 +69,7 @@ def main():
 
     # Process videos one by one
     vid_name = r"/home/saboa/data/EDS/SampleVideos/IMG_1692.MOV"
-
+    outvideo_name = r"IMG_1692_out.MOV"
     # 2. Load data
     dataset_val = build_dataset(cfg.EVAL.DATASET, vid_name=vid_name)
     data_loader_val = torch.utils.data.DataLoader(
@@ -82,6 +81,7 @@ def main():
     # 3. Inference
     model.eval()
     results_pose_cam_xyz = {}
+    results_pose_cam_uv = {}
     cpu_device = torch.device("cuda:0")
     logger.info("Evaluate on {} frames:".format(len(dataset_val)))
     for i, batch in enumerate(data_loader_val):
@@ -96,8 +96,10 @@ def main():
             est_pose_uv = [o.to(cpu_device) for o in est_pose_uv]
             est_pose_cam_xyz = [o.to(cpu_device) for o in est_pose_cam_xyz]
 
-        results_pose_cam_xyz.update({img_id.item(): result for img_id, result in zip(image_ids, est_pose_cam_xyz)})
 
+        results_pose_cam_xyz.update({img_id.item(): result for img_id, result in zip(image_ids, est_pose_cam_xyz)})
+        results_pose_cam_uv.update({img_id.item(): {"im": im.cpu().numpy(), "pose" : pose.cpu().numpy()} for\
+             img_id, im, pose in zip(image_ids, images, est_pose_uv)})
         if i % cfg.EVAL.PRINT_FREQ == 0:
             # 4. evaluate pose estimation
             avg_est_error = dataset_val.evaluate_pose(results_pose_cam_xyz, save_results=False)  # cm
@@ -112,6 +114,10 @@ def main():
                 save_batch_image_with_mesh_joints(mesh_renderer, images.to(cpu_device), cam_params.to(cpu_device),
                                                   bboxes.to(cpu_device), est_mesh_cam_xyz, est_pose_uv,
                                                   est_pose_cam_xyz, file_name)
+
+    # make output video (optional)
+    if cfg.EVAL.SAVE_OUTPUT_VIDEO:
+        save_output_video(results_pose_cam_uv, outvideo_name, vid_name)
 
     # overall evaluate pose estimation
     assert len(results_pose_cam_xyz) == len(dataset_val), \

@@ -31,4 +31,6 @@ launch.json
 /data/real_world_testset
 /data/real_world_videos
 
+# data
+*.MOV
 
