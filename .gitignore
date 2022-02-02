@@ -33,4 +33,4 @@ launch.json
 
 # data
 *.MOV
-
+*.json

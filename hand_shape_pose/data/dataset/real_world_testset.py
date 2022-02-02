@@ -116,7 +116,6 @@ class RealWorldTestSetVideo(torch.utils.data.Dataset):
 
     def __len__(self):
         return int(self.cap.get(cv2.CAP_PROP_FRAME_COUNT))
-        return len(self.image_paths)
 
     def evaluate_pose(self, results_pose_cam_xyz, save_results=False, output_dir=""):
         avg_est_error = 0.0

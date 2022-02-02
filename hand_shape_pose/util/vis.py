@@ -59,6 +59,22 @@ def draw_mesh(mesh_renderer, image, cam_param, box, mesh_xyz):
     return rend_img_overlay, rend_img_vps[0], rend_img_vps[1]
 
 
+def draw_mesh_over_image(mesh_renderer, image, cam_param, box, mesh_xyz):
+    """
+    :param mesh_renderer:
+    :param image: H x W x 3
+    :param cam_param: fx, fy, u0, v0
+    :param box: x, y, w, h
+    :param mesh_xyz: M x 3
+    :return:
+    """
+    resize_ratio = float(image.shape[0]) / box[2]
+    cam_for_render = np.array([cam_param[0], cam_param[2] - box[0], cam_param[3] - box[1]]) * resize_ratio
+
+    rend_img_overlay = mesh_renderer(mesh_xyz, cam=cam_for_render, img=image, do_alpha=True)
+    return rend_img_overlay
+
+
 def draw_2d_skeleton(image, pose_uv):
     """
     :param image: H x W x 3
@@ -170,12 +186,58 @@ def save_output_video(results_pose_cam_xyz, file_name, input_video):
     for frame in frames: 
         cap.set(cv2.CAP_PROP_POS_FRAMES, frame)
         _, image = cap.read()
-        # image = results_pose_cam_xyz[frame]['im']
-        pose_uv = results_pose_cam_xyz[frame]['pose']
+        pose_uv = results_pose_cam_xyz[frame]['pose2D']
         rescaled_pose = rescale_pose(pose_uv, (256, 256), (width,height))
         skeleton_overlay = draw_2d_skeleton(image, rescaled_pose)
         out.write(skeleton_overlay)
     
+    out.release()
+
+# TODO: rescale this to original image size
+def save_mesh_overlay(results_pose_cam_xyz, file_name, input_video, mesh_renderer):
+    # Get video props from the input to ensure they match
+    cap = cv2.VideoCapture(input_video)
+    # width  = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))   # float `width`
+    # height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))  # float `height`
+    fps = cap.get(cv2.CAP_PROP_FPS)
+
+    fourcc = cv2.VideoWriter_fourcc(*'XVID')
+    out = cv2.VideoWriter(file_name,fourcc, fps, (256,256))
+
+    frames = sorted(list(results_pose_cam_xyz.keys()))
+    for frame in frames: 
+        print(frame)
+        cap.set(cv2.CAP_PROP_POS_FRAMES, frame)
+        _, image = cap.read()
+        image = cv2.resize(image, dsize=(256, 256), interpolation=cv2.INTER_CUBIC)
+        mesh_xyz = results_pose_cam_xyz[frame]["mesh3D"]
+        cam_param = results_pose_cam_xyz[frame]["cam_param"]
+        box = results_pose_cam_xyz[frame]["box"]
+
+        rend_img_overlay = draw_mesh_over_image(mesh_renderer, image, cam_param, box, mesh_xyz)
+        frame = cv2.cvtColor(rend_img_overlay, cv2.COLOR_BGRA2BGR)
+        out.write(frame)
+
+    out.release()
+
+def save_3D_plots(results_pose_cam_xyz, file_name, input_video):
+    # Get video props from the input to ensure they match
+    cap = cv2.VideoCapture(input_video)
+    fps = cap.get(cv2.CAP_PROP_FPS)
+    cap.release()
+
+    width, height = 640, 640 # No video underlay so can choose. 
+    size = (width, height)
+    fourcc = cv2.VideoWriter_fourcc(*'XVID')
+    out = cv2.VideoWriter(file_name,fourcc, fps, size)
+
+    frames = sorted(list(results_pose_cam_xyz.keys()))
+    for frame in frames: 
+        pose_xyz = results_pose_cam_xyz[frame]["pose3D"]
+        skeleton_3d = draw_3d_skeleton(pose_xyz, (height, width))
+        frame = cv2.cvtColor(skeleton_3d, cv2.COLOR_BGRA2BGR)
+        out.write(frame)
+
     out.release()
 
 
