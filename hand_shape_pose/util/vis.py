@@ -179,7 +179,7 @@ def save_output_video(results_pose_cam_xyz, file_name, input_video):
     height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))  # float `height`
     fps = cap.get(cv2.CAP_PROP_FPS)
 
-    fourcc = cv2.VideoWriter_fourcc(*'XVID')
+    fourcc = cv2.VideoWriter_fourcc(*'MJPG')
     out = cv2.VideoWriter(file_name,fourcc, fps, (width,height))
 
     frames = sorted(list(results_pose_cam_xyz.keys()))
@@ -201,7 +201,7 @@ def save_mesh_overlay(results_pose_cam_xyz, file_name, input_video, mesh_rendere
     # height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))  # float `height`
     fps = cap.get(cv2.CAP_PROP_FPS)
 
-    fourcc = cv2.VideoWriter_fourcc(*'XVID')
+    fourcc = cv2.VideoWriter_fourcc(*'MJPG')
     out = cv2.VideoWriter(file_name,fourcc, fps, (256,256))
 
     frames = sorted(list(results_pose_cam_xyz.keys()))
@@ -228,7 +228,7 @@ def save_3D_plots(results_pose_cam_xyz, file_name, input_video):
 
     width, height = 640, 640 # No video underlay so can choose. 
     size = (width, height)
-    fourcc = cv2.VideoWriter_fourcc(*'XVID')
+    fourcc = cv2.VideoWriter_fourcc(*'MJPG')
     out = cv2.VideoWriter(file_name,fourcc, fps, size)
 
     frames = sorted(list(results_pose_cam_xyz.keys()))

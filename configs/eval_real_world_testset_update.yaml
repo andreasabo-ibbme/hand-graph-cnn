@@ -10,7 +10,7 @@ MODEL:
 GRAPH:
   TEMPLATE_PATH: "./data/0214_lowP_vn_g.0001.obj"
 EVAL:
-  SAVE_DIR: "./output/custom_dataset_out"
+  SAVE_DIR: "/home/saboa/data/EDS/SampleVideos/hand_output"
   SAVE_BATCH_IMAGES_PRED: False
   PRINT_FREQ: 5
   SAVE_POSE_ESTIMATION: True
