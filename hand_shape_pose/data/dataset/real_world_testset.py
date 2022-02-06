@@ -111,8 +111,8 @@ class RealWorldTestSetVideo(torch.utils.data.Dataset):
         res = cv2.resize(img, dsize=(256, 256), interpolation=cv2.INTER_CUBIC)
         img = torch.from_numpy(res)  # 256 x 256 x 3
 
-        return img, self.cam_params[index], self.bboxes[index], \
-               self.pose_roots[index], self.pose_scales[index], index
+        return img, self.cam_params[0], self.bboxes[0], \
+               self.pose_roots[0], self.pose_scales[0], index
 
     def __len__(self):
         return int(self.cap.get(cv2.CAP_PROP_FRAME_COUNT))

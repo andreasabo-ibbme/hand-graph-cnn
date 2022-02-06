@@ -16,6 +16,7 @@ import os
 import numpy
 import torch
 import pickle
+import time
 
 from hand_shape_pose.config import cfg
 from hand_shape_pose.model.shape_pose_network import ShapePoseNetwork
@@ -93,8 +94,9 @@ def main():
         list_of_vids = f.readlines()
 
     # Process videos one by one
-    for i in range(len(list_of_vids)):
-        vid = list_of_vids[i]
+    for i_out in range(len(list_of_vids)):
+        start_time = time.time()
+        vid = list_of_vids[i_out]
         vid_name_fullpath = vid.strip()  # Remove newlines
 
         # Save the output in a separate folder
@@ -144,8 +146,9 @@ def main():
                              img_id, pose, pose3D, mesh3D, cam_params, bboxes in zip(image_ids, est_pose_uv, est_pose_cam_xyz, est_mesh_cam_xyz, cam_params, bboxes)})
             if i % cfg.EVAL.PRINT_FREQ == 0:
                 # 4. evaluate pose estimation
-                avg_est_error = dataset_val.evaluate_pose(
-                    results_pose_cam_xyz, save_results=False)  # cm
+                # avg_est_error = dataset_val.evaluate_pose(
+                #     results_pose_cam_xyz, save_results=False)  # cm
+                avg_est_error = numpy.NaN
                 msg = 'Evaluate: [{0}/{1}]\t' 'Average pose estimation error: {2:.2f} (mm)'.format(
                     len(results_pose_cam_xyz), len(dataset_val), avg_est_error * 10.0)
                 logger.info(msg)
@@ -172,12 +175,13 @@ def main():
             pickle.dump(all_data, handle, protocol=pickle.HIGHEST_PROTOCOL)
 
         # Remove this file from the list of files to process
-        if i + 1 == len(list_of_vids):
+        if i_out + 1 == len(list_of_vids):
             os.remove(args.list_of_videos)
         else:
             with open(args.list_of_videos, 'w') as handle:
-                handle.write('\n'.join(list_of_vids[i+1:]))
+                handle.write('\n'.join(list_of_vids[i_out+1:]))
 
+        print("--- %s seconds ---" % (time.time() - start_time))
 
 if __name__ == "__main__":
     main()

@@ -1,7 +1,7 @@
 MODEL:
   DEVICE: "cuda:0"
   NUM_WORKERS: 1
-  BATCH_SIZE: 8
+  BATCH_SIZE: 32
   NUM_JOINTS: 21
   PRETRAIN_WEIGHT:
     HM_NET_PATH: "./model/pretrained_models/net_hm.pth"
